@@ -2,9 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:newcomer/my.dart';
 
 import 'main_screen.dart';
-import 'my.dart';
 
 class SignUpScreen extends StatefulWidget {
   @override
@@ -497,7 +497,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     "is_manager" : is_manager,
                   });
 
-              TinyDb.setString("user_id", id_textfield.text);
+              tiny_db.setString("user_id", id_textfield.text);
 
               EasyLoading.dismiss();
 
@@ -726,31 +726,5 @@ class _SignUpScreenState extends State<SignUpScreen> {
         ),
       ),
     );
-  }
-
-  bool validateEnglishString(String value) {
-    String patttern = r'(^[a-zA-Z ]*$)';
-    RegExp regExp = new RegExp(patttern);
-    if (value.length == 0) {
-      return false;
-    } else if (!regExp.hasMatch(value)) {
-      return false;
-    }
-    return true;
-  }
-
-  bool validateNumber(String value) {
-    // String patttern = r'(^[a-zA-Z ]*$)';
-    RegExp regExp = new RegExp(r'^[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)$');
-    if (value.length == 0) {
-      return false;
-    } else if (!regExp.hasMatch(value)) {
-      return false;
-    }
-    return true;
-  }
-
-  bool validateTukString(String value) {
-    return value.contains(new RegExp(r'[!@#$%^&*(),.?":{}|<>]'));
   }
 }

@@ -1,4 +1,6 @@
-var TinyDb;
+import 'package:flutter/material.dart';
+
+var tiny_db;
 
 class CtTheme {
   static int primary_color = 0xFFEA8205;
@@ -30,6 +32,7 @@ enum Role { beginner, believer, servant, senior, formal_servant, elder, assistan
 
 enum EduLevel { before, now, after, none }
 
+enum ManageState { cancel, manage, none }
 enum IsCeremony { yes, no, none }
 
 enum AttendWorshipType { on, off, no, none }
@@ -107,6 +110,12 @@ String? calEduLevelToDisplayText(var value) {
   else if(value == EduLevel.none){ return ""; }
 }
 
+String? calManageStateToDisplayText(var value) {
+  if(value == ManageState.cancel){ return "해제"; }
+  else if(value == ManageState.manage){ return "관리"; }
+  else if(value == ManageState.none){ return ""; }
+}
+
 String? calIsCeremonyToDisplayText(var value) {
   if(value == IsCeremony.yes){ return "완료"; }
   else if(value == IsCeremony.no){ return "예정"; }
@@ -176,6 +185,12 @@ dynamic calStringToEnum(String value){
     }
   }
 
+  for(int i = 0; i < ManageState.values.length; i++){
+    if(string_value == ManageState.values[i].toString()){
+      return ManageState.values[i];
+    }
+  }
+
   for(int i = 0; i < IsCeremony.values.length; i++){
     if(string_value == IsCeremony.values[i].toString()){
       return IsCeremony.values[i];
@@ -187,4 +202,73 @@ dynamic calStringToEnum(String value){
       return AttendWorshipType.values[i];
     }
   }
+}
+
+bool validateEnglishString(String value) {
+  String patttern = r'(^[a-zA-Z ]*$)';
+  RegExp regExp = new RegExp(patttern);
+  if (value.length == 0) {
+    return false;
+  } else if (!regExp.hasMatch(value)) {
+    return false;
+  }
+  return true;
+}
+
+bool validateNumber(String value) {
+  // String patttern = r'(^[a-zA-Z ]*$)';
+  RegExp regExp = new RegExp(r'^[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)$');
+  if (value.length == 0) {
+    return false;
+  } else if (!regExp.hasMatch(value)) {
+    return false;
+  }
+  return true;
+}
+
+bool validateTukString(String value) {
+  return value.contains(new RegExp(r'[!@#$%^&*(),.?":{}|<>]'));
+}
+
+dynamic openLoadingPage(){
+  return Scaffold(
+    backgroundColor: Color(CtTheme.white_color),
+    body: Center(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(
+            color: Color(CtTheme.black_color),
+          ),
+          Text(
+            "시작 판단 중...",
+            style: TextStyle(
+              color: Color(CtTheme.black_color),
+              fontSize: CtTheme.small_font_size,
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+dynamic openErrorPage(){
+  return Scaffold(
+    backgroundColor: Color(CtTheme.white_color),
+    body: Center(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            "에러 생김",
+            style: TextStyle(
+              color: Color(CtTheme.black_color),
+              fontSize: CtTheme.small_font_size,
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
 }

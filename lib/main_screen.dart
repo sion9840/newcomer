@@ -41,10 +41,10 @@ class _MainScreenState extends State<MainScreen> {
         actions: <Widget>[
           FutureBuilder(
             future: firestoreInstance
-              .collection("users")
-              .doc(TinyDb.getString("user_id"))
-              .get().then(
-                (value) => value
+                .collection("users")
+                .doc(tiny_db.getString("user_id"))
+                .get().then(
+                    (value) => value
             ),
             builder: (context, AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>> snapshot){
               if(snapshot.hasData){
@@ -143,7 +143,7 @@ class _MainScreenState extends State<MainScreen> {
         child: FutureBuilder(
           future: firestoreInstance
               .collection("users")
-              .doc(TinyDb.getString("user_id"))
+              .doc(tiny_db.getString("user_id"))
               .get().then(
                   (value) => value
           ),
@@ -171,7 +171,7 @@ class _MainScreenState extends State<MainScreen> {
                               builder: (context){
                                 if(snapshot.data!["is_manager"]){
                                   return Text(
-                                    "매니저",
+                                    "관리자",
                                     style: TextStyle(
                                       color: Color(CtTheme.white_color),
                                       fontSize: CtTheme.small_font_size,
@@ -179,13 +179,7 @@ class _MainScreenState extends State<MainScreen> {
                                   );
                                 }
                                 else{
-                                  return Text(
-                                    "매니저 아님",
-                                    style: TextStyle(
-                                      color: Color(CtTheme.white_color),
-                                      fontSize: CtTheme.small_font_size,
-                                    ),
-                                  );
+                                  return SizedBox();
                                 }
                               },
                             )
@@ -204,12 +198,30 @@ class _MainScreenState extends State<MainScreen> {
                           fontSize: CtTheme.small_font_size,
                         ),
                       ),
-                      trailing: Text(
-                        "매니저 여부",
-                        style: TextStyle(
-                          color: Color(CtTheme.black_color),
-                          fontSize: CtTheme.small_font_size,
-                        ),
+                      trailing: FutureBuilder(
+                        future: firestoreInstance
+                          .collection("users")
+                          .doc(tiny_db.getString("user_id"))
+                          .get().then((value) => value),
+                        builder: (context, AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>> snapshot){
+                          if(snapshot.hasData){
+                            if(snapshot.data!["is_manager"]){
+                              return Text(
+                                "관리자 여부",
+                                style: TextStyle(
+                                  color: Color(CtTheme.black_color),
+                                  fontSize: CtTheme.small_font_size,
+                                ),
+                              );
+                            }
+                            else{
+                              return SizedBox();
+                            }
+                          }
+                          else{
+                            return SizedBox();
+                          }
+                        },
                       ),
                     ),
                     FutureBuilder(
@@ -256,10 +268,10 @@ class _MainScreenState extends State<MainScreen> {
                                       };
 
                                       if(!snapshot.data!["is_manager"]){
-                                        on_changed = null;
+                                        return SizedBox();
                                       }
 
-                                      if(TinyDb.getString("user_id") != _snapshot.data!.docs[index]["id"]){
+                                      if(tiny_db.getString("user_id") != _snapshot.data!.docs[index]["id"]){
                                         return Switch(
                                           value: is_manager_list[index],
                                           onChanged: on_changed,
@@ -330,7 +342,7 @@ class _MainScreenState extends State<MainScreen> {
                                     EasyLoading.show(status: "로그아웃 중...");
 
                                     await FirebaseAuth.instance.signOut();
-                                    TinyDb.remove("user_id");
+                                    tiny_db.remove("user_id");
 
                                     EasyLoading.dismiss();
 
@@ -350,7 +362,7 @@ class _MainScreenState extends State<MainScreen> {
                         color: Color(CtTheme.black_color),
                       ),
                       title: Text(
-                        "계정삭제",
+                        "회원탈퇴",
                         style: TextStyle(
                           color: Color(CtTheme.black_color),
                           fontSize: CtTheme.small_font_size,
@@ -374,9 +386,9 @@ class _MainScreenState extends State<MainScreen> {
                                     await FirebaseAuth.instance.currentUser!.delete();
                                     await firestoreInstance
                                         .collection("users")
-                                        .doc(TinyDb.getString("user_id"))
+                                        .doc(tiny_db.getString("user_id"))
                                         .delete();
-                                    TinyDb.remove("user_id");
+                                    tiny_db.remove("user_id");
 
                                     EasyLoading.dismiss();
 
@@ -425,7 +437,7 @@ class _MainScreenState extends State<MainScreen> {
                 Sex sex = calStringToEnum(new_comer_list[index]["sex"]); String? sex_display_text = calSexToDisplayText(sex);
                 DateTime birth_date = new_comer_list[index]["birth_date"].toDate();
                 SunMoon sun_moon = calStringToEnum(new_comer_list[index]["sun_moon"]); String? sun_moon_display_text = calSunMoonToDisplayText(sun_moon);
-                int age = DateTime.now().year - birth_date.year;
+                int age = DateTime.now().year - birth_date.year + 1;
                 EnrType enr_type = calStringToEnum(new_comer_list[index]["enr_type"]); String? enr_type_display_text = calEnrTypeToDisplayText(enr_type);
                 String enr_boss = new_comer_list[index]["enr_boss"];
 
@@ -576,42 +588,42 @@ class _MainScreenState extends State<MainScreen> {
                               FutureBuilder(
                                 future: firestoreInstance
                                     .collection("users")
-                                    .doc(TinyDb.getString("user_id"))
+                                    .doc(tiny_db.getString("user_id"))
                                     .get().then(
                                         (value) => value
                                 ),
                                 builder: (context, AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>> _snapshot){
                                   if(_snapshot.hasData){
                                     return Builder(
-                                      builder: (context) {
-                                        if(_snapshot.data!["is_manager"]){
-                                          return SizedBox(
-                                            width: double.infinity,
-                                            child: TextButton(
-                                              onPressed: () async{
-                                                await Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(builder: (context) => NewComerInfoScreen([true, true, true, true, true], "관리자 권한", id)),
-                                                );
+                                        builder: (context) {
+                                          if(_snapshot.data!["is_manager"]){
+                                            return SizedBox(
+                                              width: double.infinity,
+                                              child: TextButton(
+                                                onPressed: () async{
+                                                  await Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(builder: (context) => NewComerInfoScreen([true, true, true, true, true], "관리자 권한", id)),
+                                                  );
 
-                                                Navigator.pop(context);
+                                                  Navigator.pop(context);
 
-                                                setState(() {});
-                                              },
-                                              child: Text(
-                                                "관리자 권한",
-                                                style: TextStyle(
-                                                  color: Color(CtTheme.black_color),
-                                                  fontSize: CtTheme.small_font_size,
+                                                  setState(() {});
+                                                },
+                                                child: Text(
+                                                  "관리자 권한",
+                                                  style: TextStyle(
+                                                    color: Color(CtTheme.black_color),
+                                                    fontSize: CtTheme.small_font_size,
+                                                  ),
                                                 ),
                                               ),
-                                            ),
-                                          );
+                                            );
+                                          }
+                                          else{
+                                            return SizedBox();
+                                          }
                                         }
-                                        else{
-                                          return SizedBox();
-                                        }
-                                      }
                                     );
                                   }
                                   else{
@@ -669,10 +681,10 @@ class _MainScreenState extends State<MainScreen> {
     final Sheet sheet = excel[excel.getDefaultSheet()!];
 
     var data = (await firestoreInstance
-      .collection("new_comers")
-      .orderBy("enr_date", descending: false)
-      .get().then(
-        (value) => value
+        .collection("new_comers")
+        .orderBy("enr_date", descending: false)
+        .get().then(
+            (value) => value
     )).docs;
 
     sheet.cell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0))
@@ -688,72 +700,76 @@ class _MainScreenState extends State<MainScreen> {
     sheet.cell(CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: 0))
         .value = "생년월일";
     sheet.cell(CellIndex.indexByColumnRow(columnIndex: 6, rowIndex: 0))
-        .value = "양력/음력";
+        .value = "전도회";
     sheet.cell(CellIndex.indexByColumnRow(columnIndex: 7, rowIndex: 0))
-        .value = "전화번호";
+        .value = "양력/음력";
     sheet.cell(CellIndex.indexByColumnRow(columnIndex: 8, rowIndex: 0))
+        .value = "전화번호";
+    sheet.cell(CellIndex.indexByColumnRow(columnIndex: 9, rowIndex: 0))
         .value = "등록대표";
 
-    sheet.cell(CellIndex.indexByColumnRow(columnIndex: 9, rowIndex: 0))
-        .value = "결혼여부";
     sheet.cell(CellIndex.indexByColumnRow(columnIndex: 10, rowIndex: 0))
-        .value = "주소";
+        .value = "결혼여부";
     sheet.cell(CellIndex.indexByColumnRow(columnIndex: 11, rowIndex: 0))
-        .value = "직장";
+        .value = "주소";
     sheet.cell(CellIndex.indexByColumnRow(columnIndex: 12, rowIndex: 0))
-        .value = "취미(특기)";
+        .value = "지역";
     sheet.cell(CellIndex.indexByColumnRow(columnIndex: 13, rowIndex: 0))
-        .value = "학력";
+        .value = "직장";
     sheet.cell(CellIndex.indexByColumnRow(columnIndex: 14, rowIndex: 0))
-        .value = "인도자";
+        .value = "취미(특기)";
     sheet.cell(CellIndex.indexByColumnRow(columnIndex: 15, rowIndex: 0))
-        .value = "신급";
+        .value = "학력";
     sheet.cell(CellIndex.indexByColumnRow(columnIndex: 16, rowIndex: 0))
-        .value = "이전교회";
+        .value = "인도자";
     sheet.cell(CellIndex.indexByColumnRow(columnIndex: 17, rowIndex: 0))
-        .value = "직분";
+        .value = "신급";
     sheet.cell(CellIndex.indexByColumnRow(columnIndex: 18, rowIndex: 0))
-        .value = "섬김부서";
+        .value = "이전교회";
     sheet.cell(CellIndex.indexByColumnRow(columnIndex: 19, rowIndex: 0))
+        .value = "직분";
+    sheet.cell(CellIndex.indexByColumnRow(columnIndex: 20, rowIndex: 0))
+        .value = "섬김부서";
+    sheet.cell(CellIndex.indexByColumnRow(columnIndex: 21, rowIndex: 0))
         .value = "멘토";
 
-    sheet.cell(CellIndex.indexByColumnRow(columnIndex: 20, rowIndex: 0))
-        .value = "교육상태";
-    sheet.cell(CellIndex.indexByColumnRow(columnIndex: 21, rowIndex: 0))
-        .value = "교육 1차";
     sheet.cell(CellIndex.indexByColumnRow(columnIndex: 22, rowIndex: 0))
-        .value = "교육 2차";
+        .value = "교육상태";
     sheet.cell(CellIndex.indexByColumnRow(columnIndex: 23, rowIndex: 0))
-        .value = "교육 3차";
+        .value = "교육 1차";
     sheet.cell(CellIndex.indexByColumnRow(columnIndex: 24, rowIndex: 0))
-        .value = "교육 4차";
+        .value = "교육 2차";
     sheet.cell(CellIndex.indexByColumnRow(columnIndex: 25, rowIndex: 0))
-        .value = "교육 5차";
+        .value = "교육 3차";
     sheet.cell(CellIndex.indexByColumnRow(columnIndex: 26, rowIndex: 0))
+        .value = "교육 4차";
+    sheet.cell(CellIndex.indexByColumnRow(columnIndex: 27, rowIndex: 0))
+        .value = "교육 5차";
+    sheet.cell(CellIndex.indexByColumnRow(columnIndex: 28, rowIndex: 0))
         .value = "예배 출석 현황";
 
-    sheet.cell(CellIndex.indexByColumnRow(columnIndex: 27, rowIndex: 0))
-        .value = "수료식 여부";
-    sheet.cell(CellIndex.indexByColumnRow(columnIndex: 28, rowIndex: 0))
-        .value = "가정교회 배치현황";
     sheet.cell(CellIndex.indexByColumnRow(columnIndex: 29, rowIndex: 0))
-        .value = "등록카드 사진";
+        .value = "수료식 여부";
     sheet.cell(CellIndex.indexByColumnRow(columnIndex: 30, rowIndex: 0))
+        .value = "가정교회 배치현황";
+    sheet.cell(CellIndex.indexByColumnRow(columnIndex: 31, rowIndex: 0))
+        .value = "등록카드 사진";
+    sheet.cell(CellIndex.indexByColumnRow(columnIndex: 32, rowIndex: 0))
         .value = "새가족 사진";
 
-    sheet.cell(CellIndex.indexByColumnRow(columnIndex: 31, rowIndex: 0))
-        .value = "등록동기";
-    sheet.cell(CellIndex.indexByColumnRow(columnIndex: 32, rowIndex: 0))
-        .value = "신앙생활";
     sheet.cell(CellIndex.indexByColumnRow(columnIndex: 33, rowIndex: 0))
-        .value = "자녀관련";
+        .value = "등록동기";
     sheet.cell(CellIndex.indexByColumnRow(columnIndex: 34, rowIndex: 0))
-        .value = "가정생활";
+        .value = "신앙생활";
     sheet.cell(CellIndex.indexByColumnRow(columnIndex: 35, rowIndex: 0))
-        .value = "직장관련";
+        .value = "자녀관련";
     sheet.cell(CellIndex.indexByColumnRow(columnIndex: 36, rowIndex: 0))
-        .value = "기도제목";
+        .value = "가정생활";
     sheet.cell(CellIndex.indexByColumnRow(columnIndex: 37, rowIndex: 0))
+        .value = "직장관련";
+    sheet.cell(CellIndex.indexByColumnRow(columnIndex: 38, rowIndex: 0))
+        .value = "기도제목";
+    sheet.cell(CellIndex.indexByColumnRow(columnIndex: 39, rowIndex: 0))
         .value = "기타의견";
 
     for (var row_index = 1; row_index < data.length+1; row_index++) {
@@ -772,36 +788,40 @@ class _MainScreenState extends State<MainScreen> {
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: row_index))
           .value = calDateTimeToString(new_comer["birth_date"].toDate());
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 6, rowIndex: row_index))
-          .value = calSunMoonToDisplayText(calStringToEnum(new_comer["sun_moon"]));
+          .value = new_comer["evange"];
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 7, rowIndex: row_index))
-          .value = new_comer["call_number"];
+          .value = calSunMoonToDisplayText(calStringToEnum(new_comer["sun_moon"]));
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 8, rowIndex: row_index))
+          .value = new_comer["call_number"];
+      sheet.cell(CellIndex.indexByColumnRow(columnIndex: 9, rowIndex: row_index))
           .value = new_comer["enr_boss"];
 
-      sheet.cell(CellIndex.indexByColumnRow(columnIndex: 9, rowIndex: row_index))
-          .value = calIsMarryToDisplayText(calStringToEnum(new_comer["is_marry"]));
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 10, rowIndex: row_index))
-          .value = new_comer["address"];
+          .value = calIsMarryToDisplayText(calStringToEnum(new_comer["is_marry"]));
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 11, rowIndex: row_index))
-          .value = new_comer["job"];
+          .value = new_comer["address"];
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 12, rowIndex: row_index))
-          .value = new_comer["hobby"];
+          .value = new_comer["area"];
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 13, rowIndex: row_index))
-          .value = calSchoolToDisplayText(calStringToEnum(new_comer["school"]));
+          .value = new_comer["job"];
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 14, rowIndex: row_index))
-          .value = new_comer["guider"];
+          .value = new_comer["hobby"];
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 15, rowIndex: row_index))
-          .value = calBapLevelToDisplayText(calStringToEnum(new_comer["bap_level"]));
+          .value = calSchoolToDisplayText(calStringToEnum(new_comer["school"]));
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 16, rowIndex: row_index))
-          .value = new_comer["pre_church"];
+          .value = new_comer["guider"];
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 17, rowIndex: row_index))
-          .value = calRoleToDisplayText(calStringToEnum(new_comer["role"]));
+          .value = calBapLevelToDisplayText(calStringToEnum(new_comer["bap_level"]));
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 18, rowIndex: row_index))
-          .value = new_comer["service_part"];
+          .value = new_comer["pre_church"];
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 19, rowIndex: row_index))
+          .value = calRoleToDisplayText(calStringToEnum(new_comer["role"]));
+      sheet.cell(CellIndex.indexByColumnRow(columnIndex: 20, rowIndex: row_index))
+          .value = new_comer["service_part"];
+      sheet.cell(CellIndex.indexByColumnRow(columnIndex: 21, rowIndex: row_index))
           .value = new_comer["mento"];
 
-      sheet.cell(CellIndex.indexByColumnRow(columnIndex: 20, rowIndex: row_index))
+      sheet.cell(CellIndex.indexByColumnRow(columnIndex: 22, rowIndex: row_index))
           .value = calEduLevelToDisplayText(calStringToEnum(new_comer["edu_level"]));
 
       String edu_1_date_display_text = "미교육";
@@ -826,15 +846,15 @@ class _MainScreenState extends State<MainScreen> {
         edu_5_date_display_text = "${(new_comer["edu_state"][4]["date"]).toDate().month}/${(new_comer["edu_state"][4]["date"]).toDate().day}";
       }
 
-      sheet.cell(CellIndex.indexByColumnRow(columnIndex: 21, rowIndex: row_index))
-          .value = edu_1_date_display_text;
-      sheet.cell(CellIndex.indexByColumnRow(columnIndex: 22, rowIndex: row_index))
-          .value = edu_2_date_display_text;
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 23, rowIndex: row_index))
-          .value = edu_3_date_display_text;
+          .value = edu_1_date_display_text;
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 24, rowIndex: row_index))
-          .value = edu_4_date_display_text;
+          .value = edu_2_date_display_text;
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 25, rowIndex: row_index))
+          .value = edu_3_date_display_text;
+      sheet.cell(CellIndex.indexByColumnRow(columnIndex: 26, rowIndex: row_index))
+          .value = edu_4_date_display_text;
+      sheet.cell(CellIndex.indexByColumnRow(columnIndex: 27, rowIndex: row_index))
           .value = edu_5_date_display_text;
 
       String attend_worship_display_text = "";
@@ -847,15 +867,15 @@ class _MainScreenState extends State<MainScreen> {
 
         attend_worship_display_text =
             attend_worship_display_text +
-            sep_text +
-            "${(attend_worship_state_data[i]["date"]).toDate().month}/${(attend_worship_state_data[i]["date"]).toDate().day}\n${calAttendWorshipTypeToDisplayText(calStringToEnum(attend_worship_state_data[i]["type"]))}";
+                sep_text +
+                "${(attend_worship_state_data[i]["date"]).toDate().month}/${(attend_worship_state_data[i]["date"]).toDate().day}\n${calAttendWorshipTypeToDisplayText(calStringToEnum(attend_worship_state_data[i]["type"]))}";
       }
-      sheet.cell(CellIndex.indexByColumnRow(columnIndex: 26, rowIndex: row_index))
+      sheet.cell(CellIndex.indexByColumnRow(columnIndex: 28, rowIndex: row_index))
           .value = attend_worship_display_text;
 
-      sheet.cell(CellIndex.indexByColumnRow(columnIndex: 27, rowIndex: row_index))
+      sheet.cell(CellIndex.indexByColumnRow(columnIndex: 29, rowIndex: row_index))
           .value = calIsCeremonyToDisplayText(calStringToEnum(new_comer["is_ceremony"]));
-      sheet.cell(CellIndex.indexByColumnRow(columnIndex: 28, rowIndex: row_index))
+      sheet.cell(CellIndex.indexByColumnRow(columnIndex: 30, rowIndex: row_index))
           .value = new_comer["matching"];
 
       String enr_card_file_url_data = "";
@@ -872,24 +892,24 @@ class _MainScreenState extends State<MainScreen> {
             .getDownloadURL();
       }
 
-      sheet.cell(CellIndex.indexByColumnRow(columnIndex: 29, rowIndex: row_index))
+      sheet.cell(CellIndex.indexByColumnRow(columnIndex: 31, rowIndex: row_index))
           .value = enr_card_file_url_data;
-      sheet.cell(CellIndex.indexByColumnRow(columnIndex: 30, rowIndex: row_index))
+      sheet.cell(CellIndex.indexByColumnRow(columnIndex: 32, rowIndex: row_index))
           .value = new_comer_img_file_url_data;
 
-      sheet.cell(CellIndex.indexByColumnRow(columnIndex: 31, rowIndex: row_index))
-          .value = new_comer["enr_motiv"];
-      sheet.cell(CellIndex.indexByColumnRow(columnIndex: 32, rowIndex: row_index))
-          .value = new_comer["follow_life"];
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 33, rowIndex: row_index))
-          .value = new_comer["child_related"];
+          .value = new_comer["enr_motiv"];
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 34, rowIndex: row_index))
-          .value = new_comer["home_life"];
+          .value = new_comer["follow_life"];
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 35, rowIndex: row_index))
-          .value = new_comer["job_related"];
+          .value = new_comer["child_related"];
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 36, rowIndex: row_index))
-          .value = new_comer["pray_list"];
+          .value = new_comer["home_life"];
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 37, rowIndex: row_index))
+          .value = new_comer["job_related"];
+      sheet.cell(CellIndex.indexByColumnRow(columnIndex: 38, rowIndex: row_index))
+          .value = new_comer["pray_list"];
+      sheet.cell(CellIndex.indexByColumnRow(columnIndex: 39, rowIndex: row_index))
           .value = new_comer["other_opinion"];
     }
 
@@ -897,13 +917,13 @@ class _MainScreenState extends State<MainScreen> {
 
     String file_path = await new Directory(selected_directory!).create(recursive: true)
         .then((Directory directory) {
-          String _file_path = "${directory.path}/수원동부교회_새가족부_새가족명단_${DateTime.now().year}${DateTime.now().month}${DateTime.now().day}${DateTime.now().hour}${DateTime.now().minute}${DateTime.now().second}.xlsx";
+      String _file_path = "${directory.path}/수원동부교회_새가족부_새가족명단_${DateTime.now().year}${DateTime.now().month}${DateTime.now().day}${DateTime.now().hour}${DateTime.now().minute}${DateTime.now().second}.xlsx";
 
-          File(_file_path)
+      File(_file_path)
         ..createSync(recursive: true)
         ..writeAsBytesSync(file_bytes!);
 
-          return _file_path;
+      return _file_path;
     });
 
     EasyLoading.dismiss();

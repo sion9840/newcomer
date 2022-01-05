@@ -84,11 +84,11 @@ class ReadyScreen extends StatelessWidget {
         future: prefs,
         builder: (context, snapshot) {
           if(snapshot.hasData) {
-            TinyDb = snapshot.data;
+            tiny_db = snapshot.data;
 
             initSet();
 
-            if(TinyDb.getString("user_id") == null){ // 만약 앱을 처음 사용한다면
+            if(tiny_db.getString("user_id") == null){ // 만약 앱을 처음 사용한다면
               return GuideScreen();
             }
             else{
@@ -99,21 +99,21 @@ class ReadyScreen extends StatelessWidget {
             return Scaffold(
               backgroundColor: Color(CtTheme.white_color),
               body: Center(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      CircularProgressIndicator(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(
+                      color: Color(CtTheme.black_color),
+                    ),
+                    Text(
+                      "시작 판단 중...",
+                      style: TextStyle(
                         color: Color(CtTheme.black_color),
+                        fontSize: CtTheme.small_font_size,
                       ),
-                      Text(
-                        "시작 판단 중...",
-                        style: TextStyle(
-                          color: Color(CtTheme.black_color),
-                          fontSize: CtTheme.small_font_size,
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
+                ),
               ),
             );
           }
@@ -123,7 +123,7 @@ class ReadyScreen extends StatelessWidget {
 
   void initSet() async{
     if (await FirebaseAuth.instance.currentUser! == null) {
-      TinyDb.remove("user_id");
+      tiny_db.remove("user_id");
     }
   }
 }

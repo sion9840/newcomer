@@ -22,6 +22,9 @@ class _AddNewPersonScreenState extends State<AddNewPersonScreen> {
   EnrType enr_type = EnrType.none; String enr_type_display_text = "";//등록유형
   TextEditingController name_textfield = TextEditingController(); //이름
   Sex sex = Sex.none; String sex_display_text = "";//성별
+
+  String evange = "";
+
   TextEditingController birth_date_textfield = TextEditingController(); //생년월일
   SunMoon sun_moon = SunMoon.none; String sun_moon_display_text = "";//양력/음력
   TextEditingController call_number_textfield = TextEditingController(); //전화번호
@@ -30,7 +33,10 @@ class _AddNewPersonScreenState extends State<AddNewPersonScreen> {
   Division division = Division.none; String division_display_text = "";//구분
   IsMarry is_marry = IsMarry.none; String is_marry_display_text = "";//결혼여부
   TextEditingController address_textfield = TextEditingController(); //주소
-  TextEditingController area_textfield = TextEditingController(); //지역
+
+  List areas = ["선택", "반월동", "신영통", "영통", "동탄1", "동탄2", "병점", "진안동", "봉담", "향남", "기타화성", "광교", "기타수원", "기흥", "흥덕", "수지", "기타용인", "오산", "경기도", "서울", "인천", "해외", "기타"]; //지역
+  String area = "선택";
+
   TextEditingController job_textfield = TextEditingController(); //직장
   TextEditingController hobby_textfield = TextEditingController(); //취미(특기)
   School school = School.none; String school_display_text = "";//학력
@@ -45,6 +51,7 @@ class _AddNewPersonScreenState extends State<AddNewPersonScreen> {
   List edu_state = [0, 0, 0, 0, 0]; String edu_state_display_text = "";//교육현황
   List attend_worship_state = []; String attend_worship_state_display_text = "";//예배출석 현황
 
+  ManageState manage_state = ManageState.none; String manage_state_display_text = "";//관리상태
   IsCeremony is_ceremony = IsCeremony.none; String is_ceremony_display_text = "";//수료식 여부
   TextEditingController matching_textfield = TextEditingController(); //가정교회 배치 현황
   File? enr_card_file = null;//등록카드 사진
@@ -372,6 +379,10 @@ class _AddNewPersonScreenState extends State<AddNewPersonScreen> {
                         .putFile(new_comer_img_file!);
                   }
 
+                  if(area == "선택"){
+                    area = "";
+                  }
+
                   await firestoreInstance
                       .collection("new_comers")
                       .doc(id)
@@ -383,6 +394,7 @@ class _AddNewPersonScreenState extends State<AddNewPersonScreen> {
                         "name" : name_textfield.text,
                         "sex" : sex.toString(),
                         "birth_date" : calStringToDateTime(birth_date_textfield.text),
+                        "evange" : evange,
                         "sun_moon" : sun_moon.toString(),
                         "call_number" : call_number_textfield.text,
                         "enr_boss" : enr_boss_textfield.text,
@@ -390,7 +402,7 @@ class _AddNewPersonScreenState extends State<AddNewPersonScreen> {
                         "division" : division.toString(),
                         "is_marry" : is_marry.toString(),
                         "address" : address_textfield.text,
-                        "area" : area_textfield.text,
+                        "area" : area,
                         "job" : job_textfield.text,
                         "hobby" : hobby_textfield.text,
                         "school" : school.toString(),
@@ -405,6 +417,7 @@ class _AddNewPersonScreenState extends State<AddNewPersonScreen> {
                         "edu_state" : edu_state,
                         "attend_worship_state" : attend_worship_state,
 
+                        "manage_state" : manage_state.toString(),
                         "is_ceremony" : is_ceremony.toString(),
                         "matching" : matching_textfield.text,
                         "enr_card_file_url" : enr_card_file_url,
@@ -710,6 +723,105 @@ class _AddNewPersonScreenState extends State<AddNewPersonScreen> {
                                 child: Row(
                                   children: <Widget>[
                                     SizedBox(
+                                      width: 80.0,
+                                      child: Row(
+                                        children: [
+                                          Text(
+                                            "*",
+                                            style: TextStyle(
+                                              color: Colors.red,
+                                              fontSize: CtTheme.small_font_size,
+                                            ),
+                                          ),
+                                          Text(
+                                            "전도회",
+                                            style: TextStyle(
+                                              color: Color(CtTheme.black_color),
+                                              fontSize: CtTheme.small_font_size,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Builder(
+                                      builder: (context) {
+                                        if((birth_date_textfield.text.length != 8) ||
+                                          (validateNumber(birth_date_textfield.text) == false) ||
+                                          (isValidDate(birth_date_textfield.text) == false) ||
+                                          (sex == Sex.none)
+                                        ){
+                                          return Text(
+                                            "",
+                                            style: TextStyle(
+                                              color: Color(CtTheme.black_color),
+                                              fontSize: CtTheme.small_font_size,
+                                            ),
+                                          );
+                                        }
+                                        int new_comer_age = DateTime.now().year - calStringToDateTime(birth_date_textfield.text).year + 1;
+
+                                        if(sex == Sex.male){
+                                          if(new_comer_age <= 43){
+                                            evange = "5남";
+                                          }
+                                          else if(new_comer_age <= 51){
+                                            evange = "4남";
+                                          }
+                                          else if(new_comer_age <= 56){
+                                            evange = "3남";
+                                          }
+                                          else if(new_comer_age <= 62){
+                                            evange = "2남";
+                                          }
+                                          else if(new_comer_age <= 71){
+                                            evange = "1남";
+                                          }
+                                          else{
+                                            evange = "은록회";
+                                          }
+                                        }
+                                        else{
+                                          if(new_comer_age <= 42){
+                                            evange = "6여";
+                                          }
+                                          else if(new_comer_age <= 48){
+                                            evange = "5여";
+                                          }
+                                          else if(new_comer_age <= 52){
+                                            evange = "4여";
+                                          }
+                                          else if(new_comer_age <= 55){
+                                            evange = "3여";
+                                          }
+                                          else if(new_comer_age <= 60){
+                                            evange = "2여";
+                                          }
+                                          else if(new_comer_age <= 71){
+                                            evange = "1여";
+                                          }
+                                          else{
+                                            evange = "은록회";
+                                          }
+                                        }
+
+                                        return Text(
+                                          evange,
+                                          style: TextStyle(
+                                            color: Color(CtTheme.black_color),
+                                            fontSize: CtTheme.small_font_size,
+                                          ),
+                                        );
+                                      }
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Divider(),
+                              Container(
+                                height: 40.0,
+                                child: Row(
+                                  children: <Widget>[
+                                    SizedBox(
                                       width: 90.0,
                                       child: Row(
                                         children: [
@@ -876,7 +988,7 @@ class _AddNewPersonScreenState extends State<AddNewPersonScreen> {
                                     SizedBox(
                                       width: 80.0,
                                       child: Text(
-                                        "구분",
+                                        "소속구분",
                                         style: TextStyle(
                                           color: Color(CtTheme.black_color),
                                           fontSize: CtTheme.small_font_size,
@@ -1003,22 +1115,27 @@ class _AddNewPersonScreenState extends State<AddNewPersonScreen> {
                                         ),
                                       ),
                                     ),
-                                    Expanded(
-                                      child: TextField(
-                                        controller: area_textfield,
-                                        style: TextStyle(
-                                          color: Color(CtTheme.black_color),
-                                          fontSize: CtTheme.small_font_size,
-                                        ),
-                                        decoration: InputDecoration.collapsed(
-                                          hintText: "예) 반월동",
-                                          hintStyle: TextStyle(
-                                            color: Color(CtTheme.dark_gray_color),
-                                            fontSize: CtTheme.small_font_size,
+                                    Spacer(),
+                                    DropdownButton(
+                                      value: area,
+                                      items: areas.map((value) {
+                                        return DropdownMenuItem(
+                                          value: value,
+                                          child: Text(
+                                            value,
+                                            style: TextStyle(
+                                              color: Color(CtTheme.black_color),
+                                              fontSize: CtTheme.small_font_size,
+                                            )
                                           ),
-                                        ),
-                                      ),
-                                    )
+                                        );
+                                      }).toList(),
+                                      onChanged: (value) {
+                                        area = value as String;
+
+                                        setState(() {});
+                                      },
+                                    ),
                                   ],
                                 ),
                               ),
@@ -1925,6 +2042,49 @@ class _AddNewPersonScreenState extends State<AddNewPersonScreen> {
                           padding: EdgeInsets.all(CtTheme.middle_padding),
                           child: Column(
                             children: <Widget>[
+                              Container(
+                                height: 40.0,
+                                child: Row(
+                                  children: <Widget>[
+                                    SizedBox(
+                                      width: 100.0,
+                                      child: Text(
+                                        "관리상태",
+                                        style: TextStyle(
+                                          color: Color(CtTheme.black_color),
+                                          fontSize: CtTheme.small_font_size,
+                                        ),
+                                      ),
+                                    ),
+                                    Text(
+                                      manage_state_display_text,
+                                      style: TextStyle(
+                                        color: Color(CtTheme.black_color),
+                                        fontSize: CtTheme.small_font_size,
+                                      ),
+                                    ),
+                                    Spacer(),
+                                    TextButton(
+                                      child: Text(
+                                        "선택",
+                                        style: TextStyle(
+                                          color: Color(CtTheme.primary_color),
+                                          fontSize: CtTheme.small_font_size,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      onPressed: () async{
+                                        FocusScope.of(context).unfocus();
+
+                                        await showBottomSheetOfManageState();
+
+                                        setState(() {});
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Divider(),
                               Container(
                                 height: 40.0,
                                 child: Row(
@@ -4126,6 +4286,141 @@ class _AddNewPersonScreenState extends State<AddNewPersonScreen> {
                             }
                             else if(role == Role.none){
                               role_display_text = calRoleToDisplayText(Role.none)!;
+                            }
+
+                            Navigator.pop(context);
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+        }
+    );
+  }
+
+  Future<void> showBottomSheetOfManageState() async{
+    ManageState temp_manage_state = manage_state;
+
+    await showModalBottomSheet(
+        context: context,
+        builder: (context){
+          return StatefulBuilder(
+            builder: (context, setState){
+              return Container(
+                child: Padding(
+                  padding: EdgeInsets.all(CtTheme.middle_padding),
+                  child: Column(
+                    children: [
+                      Spacer(),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Row(
+                                children: <Widget>[
+                                  Radio<ManageState>(
+                                    value: ManageState.cancel,
+                                    groupValue: temp_manage_state,
+                                    onChanged: (ManageState? value) {
+                                      setState(() {
+                                        temp_manage_state = value!;
+                                      });
+                                    },
+                                  ),
+                                  Text(
+                                    calManageStateToDisplayText(ManageState.cancel)!,
+                                    style: TextStyle(
+                                      color: Color(CtTheme.black_color),
+                                      fontSize: CtTheme.small_font_size,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(width: CtTheme.small_padding,),
+                              Row(
+                                children: <Widget>[
+                                  Radio<ManageState>(
+                                    value: ManageState.manage,
+                                    groupValue: temp_manage_state,
+                                    onChanged: (ManageState? value) {
+                                      setState(() {
+                                        temp_manage_state = value!;
+                                      });
+                                    },
+                                  ),
+                                  Text(
+                                    calManageStateToDisplayText(ManageState.manage)!,
+                                    style: TextStyle(
+                                      color: Color(CtTheme.black_color),
+                                      fontSize: CtTheme.small_font_size,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Row(
+                                children: <Widget>[
+                                  Radio<ManageState>(
+                                    value: ManageState.none,
+                                    groupValue: temp_manage_state,
+                                    onChanged: (ManageState? value) {
+                                      setState(() {
+                                        temp_manage_state = value!;
+                                      });
+                                    },
+                                  ),
+                                  Text(
+                                    '선택하지 않음',
+                                    style: TextStyle(
+                                      color: Color(CtTheme.black_color),
+                                      fontSize: CtTheme.small_font_size,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      Spacer(),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50.0,
+                        child: ElevatedButton(
+                          child: Text(
+                            "확인",
+                            style: TextStyle(
+                              color: Color(CtTheme.white_color),
+                              fontSize: CtTheme.small_font_size,
+                            ),
+                          ),
+                          style: ButtonStyle(
+                            backgroundColor: MaterialStateProperty.all<Color>(Color(CtTheme.black_color)),
+                            shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                                RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(CtTheme.small_radius),
+                                )),
+                          ),
+                          onPressed: () {
+                            manage_state = temp_manage_state;
+                            if(manage_state == ManageState.cancel){
+                              manage_state_display_text = calManageStateToDisplayText(ManageState.cancel)!;
+                            }
+                            else if(manage_state == ManageState.manage){
+                              manage_state_display_text = calManageStateToDisplayText(ManageState.manage)!;
+                            }
+                            else if(manage_state == ManageState.none){
+                              manage_state_display_text = calManageStateToDisplayText(ManageState.none)!;
                             }
 
                             Navigator.pop(context);

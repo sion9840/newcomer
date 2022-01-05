@@ -11,53 +11,55 @@ class GuideScreen extends StatelessWidget {
       backgroundColor: Color(CtTheme.white_color),
       body: Padding(
         padding: EdgeInsets.all(CtTheme.middle_padding),
-        child: Center(
-          child: Column(
-            children: <Widget>[
-              Spacer(),
-              Image.asset(
-                "images/icon.png",
-                width: 150.0,
-                height: 150.0,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            Spacer(),
+            Image.asset(
+              "images/icon.png",
+              width: 150.0,
+              height: 150.0,
+            ),
+            Text(
+              "수원동부교회\n새가족부",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Color(CtTheme.black_color),
+                fontSize: CtTheme.big_font_size,
+                fontWeight: FontWeight.bold,
               ),
-              Text(
-                "수원동부교회\n새가족부",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Color(CtTheme.black_color),
-                  fontSize: CtTheme.big_font_size,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Spacer(),
-              SizedBox(
-                width: double.infinity,
-                height: 50.0,
-                child: ElevatedButton(
-                  child: Text(
-                    "회원가입",
-                    style: TextStyle(
-                      color: Color(CtTheme.white_color),
-                      fontSize: CtTheme.small_font_size,
-                    ),
+            ),
+            Spacer(),
+            SizedBox(
+              width: double.infinity,
+              height: 50.0,
+              child: ElevatedButton(
+                child: Text(
+                  "회원가입",
+                  style: TextStyle(
+                    color: Color(CtTheme.white_color),
+                    fontSize: CtTheme.small_font_size,
                   ),
-                  style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all<Color>(Color(CtTheme.primary_color)),
-                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                        RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(CtTheme.small_radius),
-                        )),
-                  ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => SignUpScreen()),
-                    );
-                  },
                 ),
+                style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all<Color>(Color(CtTheme.primary_color)),
+                  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(CtTheme.small_radius),
+                      )),
+                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => SignUpScreen()),
+                  );
+                },
               ),
-              SizedBox(height: CtTheme.middle_padding,),
-              Row(
+            ),
+            SizedBox(height: CtTheme.middle_padding,),
+            SizedBox(
+              width: double.infinity,
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
@@ -84,8 +86,8 @@ class GuideScreen extends StatelessWidget {
                   ),
                 ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       )
     );

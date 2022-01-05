@@ -1,9 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:newcomer/my.dart';
 
 import 'main_screen.dart';
-import 'my.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -20,6 +20,8 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: Color(CtTheme.light_gray_color),
       appBar: AppBar(
         centerTitle: true,
+        backgroundColor: Color(CtTheme.white_color),
+        iconTheme: IconThemeData(color: Color(CtTheme.black_color)),
         title: Text(
           "로그인",
           style: TextStyle(
@@ -157,7 +159,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 return;
               }
 
-              TinyDb.setString("user_id", id_textfield.text);
+              tiny_db.setString("user_id", id_textfield.text);
 
               EasyLoading.dismiss();
 
@@ -166,8 +168,6 @@ class _LoginScreenState extends State<LoginScreen> {
             },
           ),
         ],
-        backgroundColor: Color(CtTheme.white_color),
-        iconTheme: IconThemeData(color: Color(CtTheme.black_color)),
       ),
       body: SingleChildScrollView(
         child: Column(
