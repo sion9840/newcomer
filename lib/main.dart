@@ -80,50 +80,40 @@ class ReadyScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<SharedPreferences>(
-        future: prefs,
-        builder: (context, snapshot) {
+    return FutureBuilder(
+        future: returnInitFuture(),
+        builder: (context, AsyncSnapshot<Map<String, dynamic>> snapshot) {
           if(snapshot.hasData) {
-            tiny_db = snapshot.data;
-
-            initSet();
-
-            if(tiny_db.getString("user_id") == null){ // 만약 앱을 처음 사용한다면
-              return GuideScreen();
-            }
-            else{
-              return MainScreen();
-            }
+            return returnMainPage(snapshot.data);
+          }
+          else if(snapshot.hasError){
+            return returnErrorPage();
           }
           else{
-            return Scaffold(
-              backgroundColor: Color(CtTheme.white_color),
-              body: Center(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(
-                      color: Color(CtTheme.black_color),
-                    ),
-                    Text(
-                      "시작 판단 중...",
-                      style: TextStyle(
-                        color: Color(CtTheme.black_color),
-                        fontSize: CtTheme.small_font_size,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
+            return returnLoadingPage();
           }
         }
     );
   }
 
-  void initSet() async{
+  Future<Map<String, dynamic>> returnInitFuture() async{
+    var prefs_data = await prefs;
+
     if (await FirebaseAuth.instance.currentUser! == null) {
-      tiny_db.remove("user_id");
+      prefs_data.remove("user_id");
+    }
+
+    return {"prefs" : prefs_data};
+  }
+
+  dynamic returnMainPage(var data){
+    tiny_db = data["prefs"];
+
+    if(tiny_db.getString("user_id") == null){ // 만약 앱을 처음 사용한다면
+      return GuideScreen();
+    }
+    else{
+      return MainScreen();
     }
   }
 }
