@@ -230,7 +230,7 @@ bool validateTukString(String value) {
   return value.contains(new RegExp(r'[!@#$%^&*(),.?":{}|<>]'));
 }
 
-dynamic returnLoadingPage(){
+dynamic openLoadingPage(){
   return Scaffold(
     backgroundColor: Color(CtTheme.white_color),
     body: Center(
@@ -241,7 +241,7 @@ dynamic returnLoadingPage(){
             color: Color(CtTheme.black_color),
           ),
           Text(
-            "생각 중...",
+            "시작 판단 중...",
             style: TextStyle(
               color: Color(CtTheme.black_color),
               fontSize: CtTheme.small_font_size,
@@ -253,19 +253,15 @@ dynamic returnLoadingPage(){
   );
 }
 
-dynamic returnErrorPage(){
+dynamic openErrorPage(){
   return Scaffold(
     backgroundColor: Color(CtTheme.white_color),
     body: Center(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Icon(
-            Icons.error,
-            color: Color(CtTheme.black_color),
-          ),
           Text(
-            ":(",
+            "에러 생김",
             style: TextStyle(
               color: Color(CtTheme.black_color),
               fontSize: CtTheme.small_font_size,
@@ -275,10 +271,4 @@ dynamic returnErrorPage(){
       ),
     ),
   );
-}
-
-Map calListToMap(List data){
-  var return_data = { for (Map v in data) v.keys.toList()[0]: v.values.toList()[0] };
-
-  return return_data;
 }

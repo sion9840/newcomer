@@ -26,25 +26,641 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: returnInitFuture(),
-      builder: (context, AsyncSnapshot<Map<String, dynamic>> snapshot){
-        if(snapshot.connectionState != ConnectionState.done){
-          return returnLoadingPage();
-        }
-        else{
-          print(snapshot.error);
+    return Scaffold(
+      backgroundColor: Color(CtTheme.light_gray_color),
+      appBar: AppBar(
+        centerTitle: true,
+        //automaticallyImplyLeading: false,
+        title: Text(
+          "수원동부교회 새가족부",
+          style: TextStyle(
+            color: Color(CtTheme.black_color),
+            fontSize: CtTheme.small_font_size,
+          ),
+        ),
+        actions: <Widget>[
+          FutureBuilder(
+            future: firestoreInstance
+                .collection("users")
+                .doc(tiny_db.getString("user_id"))
+                .get().then(
+                    (value) => value
+            ),
+            builder: (context, AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>> snapshot){
+              if(snapshot.hasData){
+                if(snapshot.data!["is_manager"]){
+                  return IconButton(
+                    icon: Icon(
+                      Icons.upload_file,
+                      color: Color(CtTheme.black_color),
+                    ),
+                    onPressed: () {
+                      showDialog<String>(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: Text("알림"),
+                            content: Text("xlsx파일을 추출하시겠습니까?"),
+                            actions: <Widget>[
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: Text("아니요"),
+                              ),
+                              TextButton(
+                                onPressed: () async{
+                                  dynamic xlsx_file_path = await generateXlsx();
+
+                                  if(xlsx_file_path == 0){
+                                    await showDialog<String>(
+                                        context: context,
+                                        builder: (context) => AlertDialog(
+                                          title: Text("알림"),
+                                          content: SelectableText("파일 선택이 취소되었습니다"),
+                                          actions: <Widget>[
+                                            TextButton(
+                                              onPressed: () => Navigator.pop(context),
+                                              child: Text("확인"),
+                                            ),
+                                          ],
+                                        )
+                                    );
+                                  }
+                                  else{
+                                    await showDialog<String>(
+                                        context: context,
+                                        builder: (context) => AlertDialog(
+                                          title: Text("알림"),
+                                          content: SelectableText("완료!\nxlsx파일이 추출되었습니다\n(저장경로: ${xlsx_file_path})"),
+                                          actions: <Widget>[
+                                            TextButton(
+                                              onPressed: () => Navigator.pop(context),
+                                              child: Text("확인"),
+                                            ),
+                                          ],
+                                        )
+                                    );
+                                  }
+
+                                  Navigator.pop(context);
+                                },
+                                child: Text("예"),
+                              ),
+                            ],
+                          )
+                      );
+                    },
+                  );
+                }
+                else{
+                  return SizedBox();
+                }
+              }
+              else{
+                return CircularProgressIndicator(
+                  color: Color(CtTheme.black_color),
+                );
+              }
+            },
+          ),
+          IconButton(
+            icon: Icon(
+              Icons.add,
+              color: Color(CtTheme.black_color),
+            ),
+            onPressed: () async{
+              await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => AddNewPersonScreen()),
+              );
+
+              setState(() {});
+            },
+          ),
+        ],
+        backgroundColor: Color(CtTheme.white_color),
+        iconTheme: IconThemeData(color: Color(CtTheme.black_color)),
+      ),
+      drawer: Drawer(
+        child: FutureBuilder(
+          future: firestoreInstance
+              .collection("users")
+              .doc(tiny_db.getString("user_id"))
+              .get().then(
+                  (value) => value
+          ),
+          builder: (context, AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>> > snapshot){
+            if(snapshot.hasData){
+              return ListView(
+                  padding: EdgeInsets.zero,
+                  children: [
+                    DrawerHeader(
+                      padding: EdgeInsets.all(CtTheme.middle_padding),
+                      child: Container(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              snapshot.data!["name"],
+                              style: TextStyle(
+                                color: Color(CtTheme.white_color),
+                                fontSize: CtTheme.small_font_size,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Builder(
+                              builder: (context){
+                                if(snapshot.data!["is_manager"]){
+                                  return Text(
+                                    "관리자",
+                                    style: TextStyle(
+                                      color: Color(CtTheme.white_color),
+                                      fontSize: CtTheme.small_font_size,
+                                    ),
+                                  );
+                                }
+                                else{
+                                  return SizedBox();
+                                }
+                              },
+                            )
+                          ],
+                        ),
+                      ),
+                      decoration: BoxDecoration(
+                        color: Color(CtTheme.primary_color),
+                      ),
+                    ),
+                    ListTile(
+                      title: Text(
+                        "구성원",
+                        style: TextStyle(
+                          color: Color(CtTheme.black_color),
+                          fontSize: CtTheme.small_font_size,
+                        ),
+                      ),
+                      trailing: FutureBuilder(
+                        future: firestoreInstance
+                            .collection("users")
+                            .doc(tiny_db.getString("user_id"))
+                            .get().then((value) => value),
+                        builder: (context, AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>> snapshot){
+                          if(snapshot.hasData){
+                            if(snapshot.data!["is_manager"]){
+                              return Text(
+                                "관리자 여부",
+                                style: TextStyle(
+                                  color: Color(CtTheme.black_color),
+                                  fontSize: CtTheme.small_font_size,
+                                ),
+                              );
+                            }
+                            else{
+                              return SizedBox();
+                            }
+                          }
+                          else{
+                            return SizedBox();
+                          }
+                        },
+                      ),
+                    ),
+                    FutureBuilder(
+                      future: firestoreInstance
+                          .collection("users")
+                          .get().then(
+                              (value) => value
+                      ),
+                      builder: (context, AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> _snapshot){
+                        if(_snapshot.hasData){
+                          List<ListTile> widgets = [];
+
+                          for(int index = 0; index < _snapshot.data!.docs.length; index++){
+                            is_manager_list.add(_snapshot.data!.docs[index]["is_manager"]);
+
+                            widgets.add(
+                                ListTile(
+                                  leading: Icon(
+                                    Icons.face,
+                                    color: Color(CtTheme.black_color),
+                                  ),
+                                  title: Text(
+                                    _snapshot.data!.docs[index]["name"],
+                                    style: TextStyle(
+                                      color: Color(CtTheme.black_color),
+                                      fontSize: CtTheme.small_font_size,
+                                    ),
+                                  ),
+                                  trailing: Builder(
+                                    builder: (context){
+                                      dynamic? on_changed = (value) async{
+                                        await firestoreInstance
+                                            .collection("users")
+                                            .doc(_snapshot.data!.docs[index]["id"])
+                                            .update(
+                                            {
+                                              "is_manager" : value
+                                            }
+                                        );
+
+                                        is_manager_list[index] = value;
+
+                                        setState(() {});
+                                      };
+
+                                      if(!snapshot.data!["is_manager"]){
+                                        return SizedBox();
+                                      }
+
+                                      if(tiny_db.getString("user_id") != _snapshot.data!.docs[index]["id"]){
+                                        return Switch(
+                                          value: is_manager_list[index],
+                                          onChanged: on_changed,
+                                        );
+                                      }
+                                      else{
+                                        return SizedBox();
+                                      }
+                                    },
+                                  ),
+                                )
+                            );
+                          }
+
+                          return Container(
+                            width: double.infinity,
+                            child: Column(
+                              children: widgets,
+                            ),
+                          );
+                        }
+                        else{
+                          return Container(
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                color: Color(CtTheme.black_color),
+                              ),
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                    Divider(),
+                    ListTile(
+                      title: Text(
+                        "설정",
+                        style: TextStyle(
+                          color: Color(CtTheme.black_color),
+                          fontSize: CtTheme.small_font_size,
+                        ),
+                      ),
+                    ),
+                    ListTile(
+                      leading: Icon(
+                        Icons.exit_to_app,
+                        color: Color(CtTheme.black_color),
+                      ),
+                      title: Text(
+                        "로그아웃",
+                        style: TextStyle(
+                          color: Color(CtTheme.black_color),
+                          fontSize: CtTheme.small_font_size,
+                        ),
+                      ),
+                      onTap: () {
+                        showDialog<String>(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: Text("알림"),
+                              content: Text("로그아웃 하시겠습니까?"),
+                              actions: <Widget>[
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: Text("아니요"),
+                                ),
+                                TextButton(
+                                  onPressed: () async{
+                                    EasyLoading.show(status: "로그아웃 중...");
+
+                                    await FirebaseAuth.instance.signOut();
+                                    tiny_db.remove("user_id");
+
+                                    EasyLoading.dismiss();
+
+                                    Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) =>
+                                        GuideScreen()), (Route<dynamic> route) => false);
+                                  },
+                                  child: Text("예"),
+                                ),
+                              ],
+                            )
+                        );
+                      },
+                    ),
+                    ListTile(
+                      leading: Icon(
+                        Icons.delete_forever,
+                        color: Color(CtTheme.black_color),
+                      ),
+                      title: Text(
+                        "회원탈퇴",
+                        style: TextStyle(
+                          color: Color(CtTheme.black_color),
+                          fontSize: CtTheme.small_font_size,
+                        ),
+                      ),
+                      onTap: () {
+                        showDialog<String>(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: Text("알림"),
+                              content: Text("정말로 계정을 삭제하시겠습니까?\n다시 되돌릴 수 없습니다."),
+                              actions: <Widget>[
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: Text("아니요"),
+                                ),
+                                TextButton(
+                                  onPressed: () async{
+                                    EasyLoading.show(status: "계정삭제 중...");
+
+                                    await FirebaseAuth.instance.currentUser!.delete();
+                                    await firestoreInstance
+                                        .collection("users")
+                                        .doc(tiny_db.getString("user_id"))
+                                        .delete();
+                                    tiny_db.remove("user_id");
+
+                                    EasyLoading.dismiss();
+
+                                    Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) =>
+                                        GuideScreen()), (Route<dynamic> route) => false);
+                                  },
+                                  child: Text("예"),
+                                ),
+                              ],
+                            )
+                        );
+                      },
+                    ),
+                  ]
+              );
+            }
+            else{
+              return Center(
+                child: CircularProgressIndicator(
+                  color: Color(CtTheme.black_color),
+                ),
+              );
+            }
+          },
+        ),
+      ),
+      body: FutureBuilder(
+        future: firestoreInstance
+            .collection("new_comers")
+            .orderBy("enr_date", descending: true)
+            .get().then(
+                (value) => value
+        ),
+        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> snapshot){
           if(snapshot.hasData){
-            return returnMainPage(snapshot.data);
-          }
-          else if(snapshot.hasError){
-            return returnErrorPage();
+            var new_comer_list = snapshot.data?.docs;
+
+            return ListView.separated(
+              padding: EdgeInsets.all(CtTheme.middle_padding),
+              itemCount: new_comer_list!.length,
+              itemBuilder: (context, index){
+                String id = new_comer_list[index]["id"];
+
+                DateTime enr_date = new_comer_list[index]["enr_date"].toDate();
+                String name = new_comer_list[index]["name"];
+                Sex sex = calStringToEnum(new_comer_list[index]["sex"]); String? sex_display_text = calSexToDisplayText(sex);
+                DateTime birth_date = new_comer_list[index]["birth_date"].toDate();
+                SunMoon sun_moon = calStringToEnum(new_comer_list[index]["sun_moon"]); String? sun_moon_display_text = calSunMoonToDisplayText(sun_moon);
+                int age = DateTime.now().year - birth_date.year + 1;
+                EnrType enr_type = calStringToEnum(new_comer_list[index]["enr_type"]); String? enr_type_display_text = calEnrTypeToDisplayText(enr_type);
+                String enr_boss = new_comer_list[index]["enr_boss"];
+
+                if(sun_moon == SunMoon.sun){
+                  sun_moon_display_text = "+";
+                }
+                else if(sun_moon == SunMoon.moon){
+                  sun_moon_display_text = "-";
+                }
+
+                return SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.all<Color>(Color(CtTheme.white_color)),
+                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                          RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(CtTheme.middle_radius),
+                          )
+                      ),
+                    ),
+                    child: Container(
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                          left: CtTheme.small_padding-10,
+                          right: CtTheme.small_padding-10,
+                          top: CtTheme.small_padding,
+                          bottom: CtTheme.small_padding,
+                        ),
+                        child: Container(
+                          width: double.infinity,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Text(
+                                "등록일자: ${enr_date.month}/${enr_date.day}",
+                                style: TextStyle(
+                                  color: Color(CtTheme.black_color),
+                                  fontSize: CtTheme.small_font_size,
+                                ),
+                              ),
+                              Text(
+                                "${name}(${sex_display_text?.substring(0, 1)})",
+                                style: TextStyle(
+                                  color: Color(CtTheme.black_color),
+                                  fontSize: CtTheme.middle_font_size,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(height: 10.0,),
+                              Text(
+                                "생년월일: ${sun_moon_display_text}${birth_date.year}/${birth_date.month}/${birth_date.day} (${age}세)",
+                                style: TextStyle(
+                                  color: Color(CtTheme.black_color),
+                                  fontSize: CtTheme.small_font_size,
+                                ),
+                              ),
+                              Text(
+                                "등록유형: ${enr_type_display_text}",
+                                style: TextStyle(
+                                  color: Color(CtTheme.black_color),
+                                  fontSize: CtTheme.small_font_size,
+                                ),
+                              ),
+                              Text(
+                                "등록대표: ${enr_boss}",
+                                style: TextStyle(
+                                  color: Color(CtTheme.black_color),
+                                  fontSize: CtTheme.small_font_size,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    onPressed: () async{
+                      await showDialog<String>(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            actions: <Widget>[
+                              SizedBox(
+                                width: double.infinity,
+                                child: TextButton(
+                                  onPressed: () async{
+                                    await Navigator.push(
+                                      context,
+                                      MaterialPageRoute(builder: (context) => NewComerInfoScreen([true, true, false, false, false], "세부등록", id)),
+                                    );
+
+                                    Navigator.pop(context);
+
+                                    setState(() {});
+                                  },
+                                  child: Text(
+                                    "세부등록",
+                                    style: TextStyle(
+                                      color: Color(CtTheme.black_color),
+                                      fontSize: CtTheme.small_font_size,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(
+                                width: double.infinity,
+                                child: TextButton(
+                                  onPressed: () async{
+                                    await Navigator.push(
+                                      context,
+                                      MaterialPageRoute(builder: (context) => NewComerInfoScreen([true, false, true, false, false], "출석체크", id)),
+                                    );
+
+                                    Navigator.pop(context);
+
+                                    setState(() {});
+                                  },
+                                  child: Text(
+                                    "출석체크",
+                                    style: TextStyle(
+                                      color: Color(CtTheme.black_color),
+                                      fontSize: CtTheme.small_font_size,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(
+                                width: double.infinity,
+                                child: TextButton(
+                                  onPressed: () async{
+                                    await Navigator.push(
+                                      context,
+                                      MaterialPageRoute(builder: (context) => NewComerInfoScreen([true, true, false, false, true], "면담기록", id)),
+                                    );
+
+                                    Navigator.pop(context);
+
+                                    setState(() {});
+                                  },
+                                  child: Text(
+                                    "면담기록",
+                                    style: TextStyle(
+                                      color: Color(CtTheme.black_color),
+                                      fontSize: CtTheme.small_font_size,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              FutureBuilder(
+                                future: firestoreInstance
+                                    .collection("users")
+                                    .doc(tiny_db.getString("user_id"))
+                                    .get().then(
+                                        (value) => value
+                                ),
+                                builder: (context, AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>> _snapshot){
+                                  if(_snapshot.hasData){
+                                    return Builder(
+                                        builder: (context) {
+                                          if(_snapshot.data!["is_manager"]){
+                                            return SizedBox(
+                                              width: double.infinity,
+                                              child: TextButton(
+                                                onPressed: () async{
+                                                  await Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(builder: (context) => NewComerInfoScreen([true, true, true, true, true], "관리자 권한", id)),
+                                                  );
+
+                                                  Navigator.pop(context);
+
+                                                  setState(() {});
+                                                },
+                                                child: Text(
+                                                  "관리자 권한",
+                                                  style: TextStyle(
+                                                    color: Color(CtTheme.black_color),
+                                                    fontSize: CtTheme.small_font_size,
+                                                  ),
+                                                ),
+                                              ),
+                                            );
+                                          }
+                                          else{
+                                            return SizedBox();
+                                          }
+                                        }
+                                    );
+                                  }
+                                  else{
+                                    return SizedBox(
+                                      width: double.infinity,
+                                      child: Container(
+                                        child: Center(
+                                          child: CircularProgressIndicator(
+                                            color: Color(CtTheme.black_color),
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                },
+                              ),
+                            ],
+                          )
+                      );
+
+                      setState(() {});
+                    },
+                  ),
+                );
+              },
+              separatorBuilder: (context, index) {
+                return SizedBox(height: CtTheme.middle_padding,);
+              },
+            );
           }
           else{
-            return returnLoadingPage();
+            return Center(
+              child: CircularProgressIndicator(),
+            );
           }
-        }
-      },
+        },
+      ),
     );
   }
 
@@ -243,7 +859,47 @@ class _MainScreenState extends State<MainScreen> {
 
       String attend_worship_display_text = "";
       var attend_worship_state_data = new_comer["attend_worship_state"];
-      for(int i = 0; i < attend_worship_state_data.length; i++){
+
+      List date_list = [];
+      List remove_index_list = [];
+      List result_attend_worship = [];
+
+      for(int i = 0; i<attend_worship_state_data.length; i++) {
+        String temp_year = attend_worship_state_data[i]["date"].toDate().year.toString();
+        String temp_month = attend_worship_state_data[i]["date"].toDate().month.toString();
+        String temp_day = attend_worship_state_data[i]["date"].toDate().day.toString();
+
+        if (temp_month.length == 1) {
+          temp_month = "0" + temp_month;
+        }
+        if (temp_day.length == 1) {
+          temp_day = "0" + temp_day;
+        }
+
+        date_list.add(
+            int.parse(temp_year + temp_month + temp_day)
+        );
+      }
+
+      for(int i = 0; i<attend_worship_state_data.length; i++){
+        int max_val = 0;
+        int index = 0;
+        for(int j = 0; j<attend_worship_state_data.length; j++){
+          if(remove_index_list.contains(j)){
+            continue;
+          }
+
+          if(date_list[j] > max_val){
+            max_val = date_list[j];
+            index = j;
+          }
+        }
+
+        remove_index_list.add(index);
+        result_attend_worship.add(attend_worship_state_data[index]);
+      }
+
+      for(int i = 0; i < result_attend_worship.length; i++){
         String sep_text = ", ";
         if(i == 0){
           sep_text = "";
@@ -252,7 +908,7 @@ class _MainScreenState extends State<MainScreen> {
         attend_worship_display_text =
             attend_worship_display_text +
                 sep_text +
-                "${(attend_worship_state_data[i]["date"]).toDate().month}/${(attend_worship_state_data[i]["date"]).toDate().day}\n${calAttendWorshipTypeToDisplayText(calStringToEnum(attend_worship_state_data[i]["type"]))}";
+                "${(result_attend_worship[i]["date"]).toDate().month}/${(result_attend_worship[i]["date"]).toDate().day}\n${calAttendWorshipTypeToDisplayText(calStringToEnum(result_attend_worship[i]["type"]))}";
       }
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 28, rowIndex: row_index))
           .value = attend_worship_display_text;
@@ -328,580 +984,5 @@ class _MainScreenState extends State<MainScreen> {
     }
 
     return year+month+day;
-  }
-
-  Future<Map<String, dynamic>> returnInitFuture() async{
-    Map users = await firestoreInstance
-      .collection("users")
-      .get().then((value){
-        Map return_data = {};
-        List value_docs = value.docs;
-
-        for(int i = 0; i <value_docs.length; i++){
-          return_data[value_docs[i].data().keys[0]] = value_docs[i].data().values[0];
-        }
-
-        return return_data;
-    });
-    Map new_comers = await firestoreInstance
-        .collection("new_comers")
-        .get().then((value){
-        Map return_data = {};
-        List value_docs = value.docs;
-
-        for(int i = 0; i <value_docs.length; i++){
-          return_data[value_docs[i].data().keys[0]] = value_docs[i].data().values[0];
-        }
-
-        return return_data;
-    });
-
-    print(12345);
-
-    return {"users" : users, "new_comers" : new_comers};
-  }
-
-  dynamic returnMainPage(var data){
-    return Scaffold(
-      backgroundColor: Color(CtTheme.light_gray_color),
-      appBar: AppBar(
-        centerTitle: true,
-        //automaticallyImplyLeading: false,
-        title: Text(
-          "수원동부교회 새가족부",
-          style: TextStyle(
-            color: Color(CtTheme.black_color),
-            fontSize: CtTheme.small_font_size,
-          ),
-        ),
-        actions: <Widget>[
-          Builder(
-            builder: (context){
-              if(data["users"][tiny_db.getString("user_id")]["is_manager"]){
-                return IconButton(
-                  icon: Icon(
-                    Icons.upload_file,
-                    color: Color(CtTheme.black_color),
-                  ),
-                  onPressed: () {
-                    showDialog<String>(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: Text("알림"),
-                          content: Text("xlsx파일을 추출하시겠습니까?"),
-                          actions: <Widget>[
-                            TextButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: Text("아니요"),
-                            ),
-                            TextButton(
-                              onPressed: () async{
-                                dynamic xlsx_file_path = await generateXlsx();
-
-                                if(xlsx_file_path == 0){
-                                  await showDialog<String>(
-                                      context: context,
-                                      builder: (context) => AlertDialog(
-                                        title: Text("알림"),
-                                        content: SelectableText("파일 선택이 취소되었습니다"),
-                                        actions: <Widget>[
-                                          TextButton(
-                                            onPressed: () => Navigator.pop(context),
-                                            child: Text("확인"),
-                                          ),
-                                        ],
-                                      )
-                                  );
-                                }
-                                else{
-                                  await showDialog<String>(
-                                      context: context,
-                                      builder: (context) => AlertDialog(
-                                        title: Text("알림"),
-                                        content: SelectableText("완료!\nxlsx파일이 추출되었습니다\n(저장경로: ${xlsx_file_path})"),
-                                        actions: <Widget>[
-                                          TextButton(
-                                            onPressed: () => Navigator.pop(context),
-                                            child: Text("확인"),
-                                          ),
-                                        ],
-                                      )
-                                  );
-                                }
-
-                                Navigator.pop(context);
-                              },
-                              child: Text("예"),
-                            ),
-                          ],
-                        )
-                    );
-                  },
-                );
-              }
-              else{
-                return SizedBox();
-              }
-            },
-          ),
-          IconButton(
-            icon: Icon(
-              Icons.add,
-              color: Color(CtTheme.black_color),
-            ),
-            onPressed: () async{
-              await Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => AddNewPersonScreen()),
-              );
-
-              setState(() {});
-            },
-          ),
-        ],
-        backgroundColor: Color(CtTheme.white_color),
-        iconTheme: IconThemeData(color: Color(CtTheme.black_color)),
-      ),
-      drawer: Drawer(
-        child: ListView(
-            padding: EdgeInsets.zero,
-            children: [
-              DrawerHeader(
-                padding: EdgeInsets.all(CtTheme.middle_padding),
-                child: Container(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        data["users"][tiny_db.getString("user_id")]["name"],
-                        style: TextStyle(
-                          color: Color(CtTheme.white_color),
-                          fontSize: CtTheme.small_font_size,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Builder(
-                        builder: (context){
-                          if(data["users"][tiny_db.getString("user_id")]["is_manager"]){
-                            return Text(
-                              "관리자",
-                              style: TextStyle(
-                                color: Color(CtTheme.white_color),
-                                fontSize: CtTheme.small_font_size,
-                              ),
-                            );
-                          }
-                          else{
-                            return SizedBox();
-                          }
-                        },
-                      )
-                    ],
-                  ),
-                ),
-                decoration: BoxDecoration(
-                  color: Color(CtTheme.primary_color),
-                ),
-              ),
-              ListTile(
-                title: Text(
-                  "구성원",
-                  style: TextStyle(
-                    color: Color(CtTheme.black_color),
-                    fontSize: CtTheme.small_font_size,
-                  ),
-                ),
-                trailing: Builder(
-                  builder: (context){
-                    if(data["users"][tiny_db.getString("user_id")]["is_manager"]){
-                      return Text(
-                        "관리자 여부",
-                        style: TextStyle(
-                          color: Color(CtTheme.black_color),
-                          fontSize: CtTheme.small_font_size,
-                        ),
-                      );
-                    }
-                    else{
-                      return SizedBox();
-                    }
-                  },
-                ),
-              ),
-              Builder(
-                builder: (context){
-                  List<ListTile> widgets = [];
-
-                  for(int index = 0; index < data["users"].length; index++){
-                    is_manager_list.add(data["users"].values[index]["is_manager"]);
-
-                    widgets.add(
-                        ListTile(
-                          leading: Icon(
-                            Icons.face,
-                            color: Color(CtTheme.black_color),
-                          ),
-                          title: Text(
-                            data["users"].values[index]["name"],
-                            style: TextStyle(
-                              color: Color(CtTheme.black_color),
-                              fontSize: CtTheme.small_font_size,
-                            ),
-                          ),
-                          trailing: Builder(
-                            builder: (context){
-                              dynamic? on_changed = (value) async{
-                                await firestoreInstance
-                                    .collection("users")
-                                    .doc(data["users"].values[index]["id"])
-                                    .update(
-                                    {
-                                      "is_manager" : value
-                                    }
-                                );
-
-                                is_manager_list[index] = value;
-
-                                setState(() {});
-                              };
-
-                              if(!data["users"].values[index]["is_manager"]){
-                                return SizedBox();
-                              }
-
-                              if(tiny_db.getString("user_id") != data["users"].values[index]["id"]){
-                                return Switch(
-                                  value: is_manager_list[index],
-                                  onChanged: on_changed,
-                                );
-                              }
-                              else{
-                                return SizedBox();
-                              }
-                            },
-                          ),
-                        )
-                    );
-                  }
-
-                  return Container(
-                    width: double.infinity,
-                    child: Column(
-                      children: widgets,
-                    ),
-                  );
-                },
-              ),
-              Divider(),
-              ListTile(
-                title: Text(
-                  "설정",
-                  style: TextStyle(
-                    color: Color(CtTheme.black_color),
-                    fontSize: CtTheme.small_font_size,
-                  ),
-                ),
-              ),
-              ListTile(
-                leading: Icon(
-                  Icons.exit_to_app,
-                  color: Color(CtTheme.black_color),
-                ),
-                title: Text(
-                  "로그아웃",
-                  style: TextStyle(
-                    color: Color(CtTheme.black_color),
-                    fontSize: CtTheme.small_font_size,
-                  ),
-                ),
-                onTap: () {
-                  showDialog<String>(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: Text("알림"),
-                        content: Text("로그아웃 하시겠습니까?"),
-                        actions: <Widget>[
-                          TextButton(
-                            onPressed: () => Navigator.pop(context),
-                            child: Text("아니요"),
-                          ),
-                          TextButton(
-                            onPressed: () async{
-                              EasyLoading.show(status: "로그아웃 중...");
-
-                              await FirebaseAuth.instance.signOut();
-                              tiny_db.remove("user_id");
-
-                              EasyLoading.dismiss();
-
-                              Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) =>
-                                  GuideScreen()), (Route<dynamic> route) => false);
-                            },
-                            child: Text("예"),
-                          ),
-                        ],
-                      )
-                  );
-                },
-              ),
-              ListTile(
-                leading: Icon(
-                  Icons.delete_forever,
-                  color: Color(CtTheme.black_color),
-                ),
-                title: Text(
-                  "회원탈퇴",
-                  style: TextStyle(
-                    color: Color(CtTheme.black_color),
-                    fontSize: CtTheme.small_font_size,
-                  ),
-                ),
-                onTap: () {
-                  showDialog<String>(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: Text("알림"),
-                        content: Text("정말로 계정을 삭제하시겠습니까?\n다시 되돌릴 수 없습니다."),
-                        actions: <Widget>[
-                          TextButton(
-                            onPressed: () => Navigator.pop(context),
-                            child: Text("아니요"),
-                          ),
-                          TextButton(
-                            onPressed: () async{
-                              EasyLoading.show(status: "계정삭제 중...");
-
-                              await FirebaseAuth.instance.currentUser!.delete();
-                              await firestoreInstance
-                                  .collection("users")
-                                  .doc(tiny_db.getString("user_id"))
-                                  .delete();
-                              tiny_db.remove("user_id");
-
-                              EasyLoading.dismiss();
-
-                              Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) =>
-                                  GuideScreen()), (Route<dynamic> route) => false);
-                            },
-                            child: Text("예"),
-                          ),
-                        ],
-                      )
-                  );
-                },
-              ),
-            ]
-        ),
-      ),
-      body: Builder(
-        builder: (context){
-
-          return ListView.separated(
-            padding: EdgeInsets.all(CtTheme.middle_padding),
-            itemCount: data["new_comers"].length,
-            itemBuilder: (context, index){
-              String id = data["new_comers"].values[index]["id"];
-
-              DateTime enr_date = data["new_comers"].values[index]["enr_date"].toDate();
-              String name = data["new_comers"].values[index]["name"];
-              Sex sex = calStringToEnum(data["new_comers"].values[index]["sex"]); String? sex_display_text = calSexToDisplayText(sex);
-              DateTime birth_date = data["new_comers"].values[index]["birth_date"].toDate();
-              SunMoon sun_moon = calStringToEnum(data["new_comers"].values[index]["sun_moon"]); String? sun_moon_display_text = calSunMoonToDisplayText(sun_moon);
-              int age = DateTime.now().year - birth_date.year + 1;
-              EnrType enr_type = calStringToEnum(data["new_comers"].values[index]["enr_type"]); String? enr_type_display_text = calEnrTypeToDisplayText(enr_type);
-              String enr_boss = data["new_comers"].values[index]["enr_boss"];
-
-              if(sun_moon == SunMoon.sun){
-                sun_moon_display_text = "+";
-              }
-              else if(sun_moon == SunMoon.moon){
-                sun_moon_display_text = "-";
-              }
-
-              return SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all<Color>(Color(CtTheme.white_color)),
-                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                        RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(CtTheme.middle_radius),
-                        )
-                    ),
-                  ),
-                  child: Container(
-                    child: Padding(
-                      padding: EdgeInsets.only(
-                        left: CtTheme.small_padding-10,
-                        right: CtTheme.small_padding-10,
-                        top: CtTheme.small_padding,
-                        bottom: CtTheme.small_padding,
-                      ),
-                      child: Container(
-                        width: double.infinity,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Text(
-                              "등록일자: ${enr_date.month}/${enr_date.day}",
-                              style: TextStyle(
-                                color: Color(CtTheme.black_color),
-                                fontSize: CtTheme.small_font_size,
-                              ),
-                            ),
-                            Text(
-                              "${name}(${sex_display_text?.substring(0, 1)})",
-                              style: TextStyle(
-                                color: Color(CtTheme.black_color),
-                                fontSize: CtTheme.middle_font_size,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            SizedBox(height: 10.0,),
-                            Text(
-                              "생년월일: ${sun_moon_display_text}${birth_date.year}/${birth_date.month}/${birth_date.day} (${age}세)",
-                              style: TextStyle(
-                                color: Color(CtTheme.black_color),
-                                fontSize: CtTheme.small_font_size,
-                              ),
-                            ),
-                            Text(
-                              "등록유형: ${enr_type_display_text}",
-                              style: TextStyle(
-                                color: Color(CtTheme.black_color),
-                                fontSize: CtTheme.small_font_size,
-                              ),
-                            ),
-                            Text(
-                              "등록대표: ${enr_boss}",
-                              style: TextStyle(
-                                color: Color(CtTheme.black_color),
-                                fontSize: CtTheme.small_font_size,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  onPressed: () async{
-                    await showDialog<String>(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          actions: <Widget>[
-                            SizedBox(
-                              width: double.infinity,
-                              child: TextButton(
-                                onPressed: () async{
-                                  await Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (context) => NewComerInfoScreen([true, true, false, false, false], "세부등록", id)),
-                                  );
-
-                                  Navigator.pop(context);
-
-                                  setState(() {});
-                                },
-                                child: Text(
-                                  "세부등록",
-                                  style: TextStyle(
-                                    color: Color(CtTheme.black_color),
-                                    fontSize: CtTheme.small_font_size,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            SizedBox(
-                              width: double.infinity,
-                              child: TextButton(
-                                onPressed: () async{
-                                  await Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (context) => NewComerInfoScreen([true, false, true, false, false], "출석체크", id)),
-                                  );
-
-                                  Navigator.pop(context);
-
-                                  setState(() {});
-                                },
-                                child: Text(
-                                  "출석체크",
-                                  style: TextStyle(
-                                    color: Color(CtTheme.black_color),
-                                    fontSize: CtTheme.small_font_size,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            SizedBox(
-                              width: double.infinity,
-                              child: TextButton(
-                                onPressed: () async{
-                                  await Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (context) => NewComerInfoScreen([true, true, false, false, true], "면담기록", id)),
-                                  );
-
-                                  Navigator.pop(context);
-
-                                  setState(() {});
-                                },
-                                child: Text(
-                                  "면담기록",
-                                  style: TextStyle(
-                                    color: Color(CtTheme.black_color),
-                                    fontSize: CtTheme.small_font_size,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Builder(
-                                builder: (context) {
-                                  if(data["users"][tiny_db.getString("user_id")]["is_manager"]){
-                                    return SizedBox(
-                                      width: double.infinity,
-                                      child: TextButton(
-                                        onPressed: () async{
-                                          await Navigator.push(
-                                            context,
-                                            MaterialPageRoute(builder: (context) => NewComerInfoScreen([true, true, true, true, true], "관리자 권한", id)),
-                                          );
-
-                                          Navigator.pop(context);
-
-                                          setState(() {});
-                                        },
-                                        child: Text(
-                                          "관리자 권한",
-                                          style: TextStyle(
-                                            color: Color(CtTheme.black_color),
-                                            fontSize: CtTheme.small_font_size,
-                                          ),
-                                        ),
-                                      ),
-                                    );
-                                  }
-                                  else{
-                                    return SizedBox();
-                                  }
-                                }
-                            ),
-                          ],
-                        )
-                    );
-
-                    setState(() {});
-                  },
-                ),
-              );
-            },
-            separatorBuilder: (context, index) {
-              return SizedBox(height: CtTheme.middle_padding,);
-            },
-          );
-        },
-      ),
-    );
   }
 }

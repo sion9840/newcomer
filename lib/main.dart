@@ -80,43 +80,50 @@ class ReadyScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-        future: returnInitFuture(),
-        builder: (context, AsyncSnapshot<Map<String, dynamic>> snapshot) {
+    return FutureBuilder<SharedPreferences>(
+        future: prefs,
+        builder: (context, snapshot) {
           if(snapshot.hasData) {
-            return returnMainPage(snapshot.data);
-          }
-          else if(snapshot.hasError){
-            return returnErrorPage();
+            tiny_db = snapshot.data;
+
+            initSet();
+
+            if(tiny_db.getString("user_id") == null){ // 만약 앱을 처음 사용한다면
+              return GuideScreen();
+            }
+            else{
+              return MainScreen();
+            }
           }
           else{
-            return returnLoadingPage();
+            return Scaffold(
+              backgroundColor: Color(CtTheme.white_color),
+              body: Center(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(
+                      color: Color(CtTheme.black_color),
+                    ),
+                    Text(
+                      "시작 판단 중...",
+                      style: TextStyle(
+                        color: Color(CtTheme.black_color),
+                        fontSize: CtTheme.small_font_size,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
           }
         }
     );
   }
 
-  Future<Map<String, dynamic>> returnInitFuture() async{
-    var prefs_data = await prefs;
-
-    /*
+  void initSet() async{
     if (await FirebaseAuth.instance.currentUser! == null) {
-      prefs_data.remove("user_id");
-    }
-
-     */
-
-    return {"prefs" : prefs_data};
-  }
-
-  dynamic returnMainPage(var data){
-    tiny_db = data["prefs"];
-
-    if(tiny_db.getString("user_id") == null){ // 만약 앱을 처음 사용한다면
-      return GuideScreen();
-    }
-    else{
-      return MainScreen();
+      tiny_db.remove("user_id");
     }
   }
 }
