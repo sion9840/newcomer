@@ -29,14 +29,20 @@ class _MainScreenState extends State<MainScreen> {
     return FutureBuilder(
       future: returnInitFuture(),
       builder: (context, AsyncSnapshot<Map<String, dynamic>> snapshot){
-        if(snapshot.hasData){
-          return returnMainPage(snapshot.data);
-        }
-        else if(snapshot.hasError){
-          return returnErrorPage();
+        if(snapshot.connectionState != ConnectionState.done){
+          return returnLoadingPage();
         }
         else{
-          return returnLoadingPage();
+          print(snapshot.error);
+          if(snapshot.hasData){
+            return returnMainPage(snapshot.data);
+          }
+          else if(snapshot.hasError){
+            return returnErrorPage();
+          }
+          else{
+            return returnLoadingPage();
+          }
         }
       },
     );
@@ -349,6 +355,8 @@ class _MainScreenState extends State<MainScreen> {
 
         return return_data;
     });
+
+    print(12345);
 
     return {"users" : users, "new_comers" : new_comers};
   }

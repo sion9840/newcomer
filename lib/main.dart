@@ -99,9 +99,12 @@ class ReadyScreen extends StatelessWidget {
   Future<Map<String, dynamic>> returnInitFuture() async{
     var prefs_data = await prefs;
 
+    /*
     if (await FirebaseAuth.instance.currentUser! == null) {
       prefs_data.remove("user_id");
     }
+
+     */
 
     return {"prefs" : prefs_data};
   }
